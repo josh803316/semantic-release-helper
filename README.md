@@ -1,7 +1,7 @@
 [![semantic-release: angular](https://img.shields.io/badge/semantic--release-angular-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
-# @sketchy/semantic-release-config
+# @josh803316/semantic-release-helper
 
-Shareable config to run [Semantic Releases](https://github.com/semantic-release/semantic-release) at [Sketchy](https://github.com/sketchy).
+Shareable config to run [Semantic Releases](https://github.com/semantic-release/semantic-release) at [Josh803316](https://github.com/josh803316).
 
 ## Plugins
 
@@ -18,10 +18,10 @@ This shareable configuration use the following plugins:
 Make sure that you have a Github token (personal access or new beta API token) and an NPM auth token setup for publishing this to the github packages list.
 
 ```bash
-$ npm install --save-dev semantic-release @sketchy/semantic-release-config
+$ npm install --save-dev semantic-release @josh803316/semantic-release-helper
 ```
 
-If you're adding `semantic-release` in your CI/CD pipeline, be sure to add `@sketchy/semantic-release-config` there as well
+If you're adding `semantic-release` in your CI/CD pipeline, be sure to add `@josh803316/semantic-release-helper` there as well
 
 ## Usage
 
@@ -31,7 +31,7 @@ Via `.releaserc` file:
 ```json
 {
   "branch": "main",
-  "extends": "@sketchy/semantic-release-config"
+  "extends": "@josh803316/semantic-release-helper"
 }
 ```
 
