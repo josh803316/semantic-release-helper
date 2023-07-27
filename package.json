@@ -1,0 +1,54 @@
+{
+  "name": "semantic-release-helper",
+  "version": "0.0.0-semantically-released",
+  "description": "Shared emantic release configuration file",
+  "main": "release.config.js",
+  "files": [
+    "release.config.js"
+  ],
+  "scripts": {
+    "semantic-release": "semantic-release",
+    "test": "xo"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/josh803316/semantic-release-helper.git"
+  },
+  "keywords": [
+    "Sketchy",
+    "release",
+    "semantic-release",
+    "semantic-release-helper"
+  ],
+  "author": "Josh Nisenson <josh803316@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/josh803316/semantic-release-helper/issues"
+  },
+  "homepage": "https://github.com/josh803316/semantic-release-helper#readme",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/josh803316"
+  },
+  "dependencies": {
+    "semantic-release": "^21.0.7",
+    "@semantic-release/commit-analyzer": "^10.0.1",
+    "@semantic-release/exec": "^6.0.3",
+    "@semantic-release/github": "^9.0.4",
+    "@semantic-release/npm": "^10.0.4",
+    "@semantic-release/release-notes-generator": "^11.0.4",
+    "semantic-release-slack-bot": "^4.0.2",
+    "conventional-changelog-conventionalcommits": "^6.1.0",
+    "slackify-markdown": "^4.3.1",
+    "xo": "^0.55.0"
+  },
+  "devDependencies": {
+  },
+  "prettier": {
+    "printWidth": 120,
+    "trailingComma": "es5"
+  },
+  "xo": {
+    "prettier": true,
+    "space": true
+  }
+}

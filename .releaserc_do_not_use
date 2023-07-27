@@ -1,0 +1,136 @@
+{
+  "branches": [
+    "main",
+    "develop"
+  ],
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "angular",
+        "releaseRules": [
+          {
+            "type": "chore",
+            "release": "patch"
+          },
+          {
+            "type": "docs",
+            "release": "patch"
+          },
+          {
+            "type": "refactor",
+            "release": "patch"
+          },
+          {
+            "type": "style",
+            "release": "patch"
+          },
+          {
+            "type": "test",
+            "release": "patch"
+          }
+        ],
+        "parserOpts": {
+          "headerPattern": "^(\\w*)(?:\\(([\\w\\$\\.\\-\\* ]*)\\))?\\: (\\[((?![A-Z0-9a-z]{1,10}-?$)[A-Z]{1}[A-Z0-9]+-\\d+)\\]\\s+)?(.*)$",
+          "headerCorrespondence": [
+            "type",
+            "scope",
+            "linear",
+            "linear",
+            "subject"
+          ]
+        }
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "preset": "conventionalcommits",
+        "presetConfig": {
+          "issuePrefixes": [
+            "SKE"
+          ],
+          "issueUrlFormat": "https://linear.app/sketchy/issue/{{prefix}}{{id}}",
+          "types": [
+            {
+              "type": "feat",
+              "section": ":rocket: Features"
+            },
+            {
+              "type": "fix",
+              "section": ":bug: Fixes"
+            },
+            {
+              "type": "perf",
+              "section": ":racing_car: Performance"
+            },
+            {
+              "type": "chore",
+              "section": ":hammer_and_wrench: Chores",
+              "hidden": false
+            },
+            {
+              "type": "docs",
+              "section": ":book: Docs",
+              "hidden": false
+            },
+            {
+              "type": "refactor",
+              "section": ":construction: Refactor",
+              "hidden": false
+            },
+            {
+              "type": "style",
+              "section": ":nail_care: Styling",
+              "hidden": false
+            },
+            {
+              "type": "test",
+              "section": ":thermometer: Test",
+              "hidden": false
+            }
+          ]
+        },
+        "parserOpts": {
+          "headerPattern": "^(\\w*)(?:\\(([\\w\\$\\.\\-\\* ]*)\\))?\\: (\\[((?![A-Z0-9a-z]{1,10}-?$)[A-Z]{1}[A-Z0-9]+-\\d+)\\]\\s+)?(.*)$",
+          "headerCorrespondence": [
+            "type",
+            "scope",
+            "linear",
+            "linear",
+            "subject"
+          ]
+        }
+      }
+    ],
+    [
+      "semantic-release-slack-bot",
+      {
+        "notifyOnSuccess": false,
+        "notifyOnFail": false,
+        "markdownReleaseNotes": false,
+        "slackWebhook": "REDACTED_SLACK_WEBHOOK",
+        "branchesConfig": [
+          {
+            "pattern": "lts/*",
+            "notifyOnFail": true
+          },
+          {
+            "pattern": "main",
+            "notifyOnSuccess": true,
+            "notifyOnFail": true
+          }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "verifyreleaseCmd": "sh ./ci/release.sh",
+        "prepareCmd": "sh ./ci/release.sh"
+      }
+    ],
+    "@semantic-release/github",
+    "@semantic-release/npm"
+  ]
+}
