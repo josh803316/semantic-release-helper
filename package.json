@@ -1,5 +1,5 @@
 {
-  "name": "semantic-release-helper",
+  "name": "@josh803316/semantic-release-helper",
   "version": "0.0.0-semantically-released",
   "description": "Shared emantic release configuration file",
   "main": "release.config.js",
@@ -15,7 +15,6 @@
     "url": "https://github.com/josh803316/semantic-release-helper.git"
   },
   "keywords": [
-    "Sketchy",
     "release",
     "semantic-release",
     "semantic-release-helper"

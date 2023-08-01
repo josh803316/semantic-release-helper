@@ -44,7 +44,8 @@ const onSuccessFunction = (pluginConfig, context) => {
 };
 
 const onFailFunction = (pluginConfig, context) => {
-  const releaseNotes = slackifyMarkdown(context.nextRelease.notes);
+  const nextReleaseNotes = context.nextRelease?.notes || 'No notes existed';
+  const releaseNotes = slackifyMarkdown(nextReleaseNotes);
   const text = `A failure happened during the attempted release of \`${process.env.SEMANTIC_RELEASE_PACKAGE}\``;
   const headerBlock = {
     type: "section",
@@ -95,7 +96,7 @@ let pluginList = [
       preset: "conventionalcommits",
       presetConfig: {
         issuePrefixes: ["SKE"],
-        issueUrlFormat: "https://linear.app/sketchy/issue/{{prefix}}{{id}}",
+        issueUrlFormat: "https://linear.app/project-hygeia/issue/{{prefix}}{{id}}",
         types: [
           { type: "feat", section: ":rocket: FEATURES" },
           { type: "fix", section: ":bug: FIXES" },
