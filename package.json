@@ -27,7 +27,8 @@
   },
   "homepage": "https://github.com/josh803316/semantic-release-helper#readme",
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "registry": "https://npm.pkg.github.com",
+    "access": "public"
   },
   "dependencies": {
     "semantic-release": "^25.0.3",
