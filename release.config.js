@@ -1,78 +1,62 @@
-const slackifyMarkdown = require("slackify-markdown");
-const { chunkifyString } = require("semantic-release-slack-bot/lib/chunkifier");
-const willPublishPackages = process.env.PUBLISH_TO_NPM === "true" ? true : false;
+// Slack notifications — to enable:
+//   1. Uncomment the Slack sections below
+//   2. Set SLACK_WEBHOOK env var to your Slack incoming webhook URL
+//   3. Set SEMANTIC_RELEASE_PACKAGE env var to your package name
+//
+// const slackifyMarkdown = require("slackify-markdown");
+// const { chunkifyString } = require("semantic-release-slack-bot/lib/chunkifier");
+// const slackWebhook = process.env.SLACK_WEBHOOK;
+//
+// const onSuccessFunction = (pluginConfig, context) => {
+//   const releaseNotes = slackifyMarkdown(context.nextRelease.notes);
+//   const text = `A new version of \`${process.env.SEMANTIC_RELEASE_PACKAGE}\` has been released to *Production!*`;
+//   const headerBlock = { type: "section", text: { type: "mrkdwn", text } };
+//   return {
+//     text,
+//     blocks: [
+//       headerBlock,
+//       ...chunkifyString(releaseNotes, 2900).map((chunk) => ({
+//         type: "section",
+//         text: { type: "mrkdwn", text: chunk },
+//       })),
+//     ],
+//   };
+// };
+//
+// const onFailFunction = (pluginConfig, context) => {
+//   const nextReleaseNotes = context.nextRelease?.notes || "No notes existed";
+//   const releaseNotes = slackifyMarkdown(nextReleaseNotes);
+//   const text = `A failure happened during the attempted release of \`${process.env.SEMANTIC_RELEASE_PACKAGE}\``;
+//   const headerBlock = { type: "section", text: { type: "mrkdwn", text } };
+//   return {
+//     text,
+//     blocks: [
+//       headerBlock,
+//       ...chunkifyString(releaseNotes, 2900).map((chunk) => ({
+//         type: "section",
+//         text: { type: "mrkdwn", text: chunk },
+//       })),
+//     ],
+//   };
+// };
 
-// Console logs will be removed soon
-console.log({ PUBLISH_TO_NPM: process.env.PUBLISH_TO_NPM });
-console.log({ willPublishPackages });
+const willPublishPackages = process.env.PUBLISH_TO_NPM === "true";
 
 const sortCommitGroup = (a, b) => {
-  const tags = [':rocket: FEATURES', ':bug: FIXES', ':racing_car: PERFORMANCE', ':hammer_and_wrench: CHORES', ':book: DOCS',
-    ':construction: REFACTOR', ':nail_care: STYLING', ':thermometer: TEST'];
-  rankA = tags.indexOf(a.title);
-  rankB = tags.indexOf(b.title);
-
-  return rankA - rankB
+  const tags = [
+    ":rocket: FEATURES",
+    ":bug: FIXES",
+    ":racing_car: PERFORMANCE",
+    ":hammer_and_wrench: CHORES",
+    ":book: DOCS",
+    ":construction: REFACTOR",
+    ":nail_care: STYLING",
+    ":thermometer: TEST",
+  ];
+  return tags.indexOf(a.title) - tags.indexOf(b.title);
 };
 
-const onSuccessFunction = (pluginConfig, context) => {
-  const releaseNotes = slackifyMarkdown(context.nextRelease.notes);
-  const text = `A new version of \`${process.env.SEMANTIC_RELEASE_PACKAGE}\` has been released to \*Production!\*`;
-  const headerBlock = {
-    type: "section",
-    text: {
-      type: "mrkdwn",
-      text,
-    },
-  };
-
-  return {
-    text,
-    blocks: [
-      headerBlock,
-      ...chunkifyString(releaseNotes, 2900).map((chunk) => {
-        return {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: chunk,
-          },
-        };
-      }),
-    ],
-  };
-};
-
-const onFailFunction = (pluginConfig, context) => {
-  const nextReleaseNotes = context.nextRelease?.notes || 'No notes existed';
-  const releaseNotes = slackifyMarkdown(nextReleaseNotes);
-  const text = `A failure happened during the attempted release of \`${process.env.SEMANTIC_RELEASE_PACKAGE}\``;
-  const headerBlock = {
-    type: "section",
-    text: {
-      type: "mrkdwn",
-      text,
-    },
-  };
-
-  return {
-    text,
-    blocks: [
-      headerBlock,
-      ...chunkifyString(releaseNotes, 2900).map((chunk) => {
-        return {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: chunk,
-          },
-        };
-      }),
-    ],
-  };
-};
-
-let pluginList = [
+const pluginList = [
   [
     "@semantic-release/commit-analyzer",
     {
@@ -84,10 +68,6 @@ let pluginList = [
         { type: "style", release: "patch" },
         { type: "test", release: "patch" },
       ],
-      parserOpts: {
-        headerPattern: "^(\\w*)\\:\\s*(\\[?([A-Z]{1}[A-Z0-9]+-\\d+)\\]?)?\\s*(?!\\s)(.*)$",
-        headerCorrespondence: ["type", "linear", "linear", "subject"],
-      },
     },
   ],
   [
@@ -95,8 +75,6 @@ let pluginList = [
     {
       preset: "conventionalcommits",
       presetConfig: {
-        issuePrefixes: ["SKE"],
-        issueUrlFormat: "https://linear.app/project-hygeia/issue/{{prefix}}{{id}}",
         types: [
           { type: "feat", section: ":rocket: FEATURES" },
           { type: "fix", section: ":bug: FIXES" },
@@ -108,66 +86,45 @@ let pluginList = [
           { type: "test", section: ":thermometer: TEST", hidden: false },
         ],
       },
-      parserOpts: {
-        headerPattern: "^(\\w*)\\:\\s*(\\[?([A-Z]{1}[A-Z0-9]+-\\d+)\\]?)?\\s*(?!\\s)(.*)$",
-        headerCorrespondence: ["type", "linear", "linear", "subject"],
-        noteKeywords: ["BREAKING CHANGE", "BREAKING CHANGES", "BREAKING"]
-      },
       writerOpts: {
         groupBy: "type",
-        commitGroupsSort: sortCommitGroup
-      }
+        commitGroupsSort: sortCommitGroup,
+      },
     },
   ],
-  [
-    "semantic-release-slack-bot",
-    {
-      notifyOnSuccess: false,
-      notifyOnFail: false,
-      markdownReleaseNotes: false,
-      slackWebhook: "REDACTED_SLACK_WEBHOOK",
-      branchesConfig: [
-        {
-          pattern: "lts/*",
-          notifyOnFail: true,
-        },
-        {
-          pattern: "main",
-          markdownReleaseNotes: false,
-          notifyOnSuccess: true,
-          onSuccessFunction,
-          notifyOnFail: true,
-          onFailFunction,
-        },
-      ],
-    },
-  ],
-  [
-    "@semantic-release/exec",
-    {
-      verifyReleaseCmd: "sh ./ci/release.sh ${nextRelease.version}", // eslint-disable-line no-template-curly-in-string
-      prepareCmd: "sh ./ci/release.sh ${nextRelease.version}", // eslint-disable-line no-template-curly-in-string
-    },
-  ],
+  // Slack — uncomment block below and the Slack sections at the top of this file to enable
+  // [
+  //   "semantic-release-slack-bot",
+  //   {
+  //     notifyOnSuccess: false,
+  //     notifyOnFail: false,
+  //     markdownReleaseNotes: false,
+  //     slackWebhook,
+  //     branchesConfig: [
+  //       {
+  //         pattern: "main",
+  //         markdownReleaseNotes: false,
+  //         notifyOnSuccess: true,
+  //         onSuccessFunction,
+  //         notifyOnFail: true,
+  //         onFailFunction,
+  //       },
+  //     ],
+  //   },
+  // ],
   "@semantic-release/github",
 ];
 
-const npmPublishConfig = [
-  "@semantic-release/npm",
-  {
-    npmPublish: willPublishPackages,
-  },
-];
-
-console.log({ pluginList: JSON.stringify(pluginList) });
-
-if (willPublishPackages === true) {
-  pluginList.push(npmPublishConfig);
+if (willPublishPackages) {
+  pluginList.push([
+    "@semantic-release/npm",
+    {
+      npmPublish: true,
+    },
+  ]);
 }
 
-console.log({ pluginList: JSON.stringify(pluginList) });
-
 module.exports = {
-  branches: ["main", "stage"],
+  branches: ["main"],
   plugins: pluginList,
 };

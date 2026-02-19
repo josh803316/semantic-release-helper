@@ -7,3 +7,7 @@ node_modules
 ## Lock ##
 # package-lock.json
 yarn.lock
+
+## Local config files with potential secrets ##
+.releaserc_do_not_use
+*.local

@@ -1,57 +1,123 @@
 [![semantic-release: angular](https://img.shields.io/badge/semantic--release-angular-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
 # @josh803316/semantic-release-helper
 
-Shareable config to run [Semantic Releases](https://github.com/semantic-release/semantic-release) at [Josh803316](https://github.com/josh803316).
+Shareable semantic-release config for personal projects. Creates GitHub releases, generates changelog from conventional commits, and optionally publishes to GitHub Packages.
 
 ## Plugins
 
-This shareable configuration use the following plugins:
-- [`@semantic-release/commit-analyzer`](https://github.com/semantic-release/commit-analyzer)
-- [`@semantic-release/release-notes-generator`](https://github.com/semantic-release/release-notes-generator)
-- [`@semantic-release/exec`](https://github.com/semantic-release/exec)
-- [`@semantic-release/git`](https://github.com/semantic-release/git)
-- [`@semantic-release/npm`](https://github.com/semantic-release/npm)
-- [`conventionalcommits.org convention`](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-conventionalcommits)
+- [`@semantic-release/commit-analyzer`](https://github.com/semantic-release/commit-analyzer) — determines version bump from commits
+- [`@semantic-release/release-notes-generator`](https://github.com/semantic-release/release-notes-generator) — generates changelog
+- [`@semantic-release/github`](https://github.com/semantic-release/github) — creates GitHub releases and tags
+- [`@semantic-release/npm`](https://github.com/semantic-release/npm) — publishes to GitHub Packages (when `PUBLISH_TO_NPM=true`)
+- [`semantic-release-slack-bot`](https://github.com/juanpabloaj/semantic-release-slack-bot) — Slack notifications (when `SLACK_WEBHOOK` env var is set)
 
+## Install in a consuming project
 
-## Install
-Make sure that you have a Github token (personal access or new beta API token) and an NPM auth token setup for publishing this to the github packages list.
+### 1. Add `.npmrc` to authenticate with GitHub Packages
 
-```bash
-$ npm install --save-dev semantic-release @josh803316/semantic-release-helper
+```
+@josh803316:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
 ```
 
-If you're adding `semantic-release` in your CI/CD pipeline, be sure to add `@josh803316/semantic-release-helper` there as well
+### 2. Install the package
 
-## Usage
+```bash
+npm install --save-dev @josh803316/semantic-release-helper
+```
 
-The shareable config can be configured in the [**semantic-release** configuration file](https://github.com/semantic-release/semantic-release/blob/master/docs/usage/configuration.md#configuration):
+### 3. Add a `.releaserc` config
 
-Via `.releaserc` file:
 ```json
 {
-  "branch": "main",
   "extends": "@josh803316/semantic-release-helper"
 }
 ```
 
-## Publish
-```bash
-npm publish --access public
+Or add a `release.config.js` if you need to extend with project-specific steps (e.g. `@semantic-release/exec`):
+
+```js
+const baseConfig = require('@josh803316/semantic-release-helper');
+
+module.exports = {
+  ...baseConfig,
+  plugins: [
+    ...baseConfig.plugins,
+    // add project-specific plugins here
+  ],
+};
 ```
 
-## Pubish Dry Run
-Does everything publish would do except actually publishing to the registry
-```bash
-npm publish --dry-run
+### 4. Add a GitHub Actions release workflow
+
+```yaml
+name: Release
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com
+
+      - run: npm ci
+
+      - run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SEMANTIC_RELEASE_PACKAGE: your-package-name
+          # Set PUBLISH_TO_NPM: "true" only if publishing to GitHub Packages
+          # Set SLACK_WEBHOOK secret if you want Slack notifications
 ```
 
-## Semantic Release Dry Run
-Run on the `main` branch
+## Commit convention
+
+Uses [Angular conventional commits](https://www.conventionalcommits.org/). All commit types trigger at minimum a patch release:
+
+| Type | Release | Section |
+|------|---------|---------|
+| `feat` | minor | :rocket: FEATURES |
+| `fix` | patch | :bug: FIXES |
+| `perf` | patch | :racing_car: PERFORMANCE |
+| `chore` | patch | :hammer_and_wrench: CHORES |
+| `docs` | patch | :book: DOCS |
+| `refactor` | patch | :construction: REFACTOR |
+| `style` | patch | :nail_care: STYLING |
+| `test` | patch | :thermometer: TEST |
+
+`BREAKING CHANGE` in commit footer → major release.
+
+## Environment variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GITHUB_TOKEN` | Yes | GitHub token for creating releases (built-in in Actions) |
+| `NODE_AUTH_TOKEN` | Yes (if publishing) | Token for GitHub Packages auth (can reuse `GITHUB_TOKEN`) |
+| `PUBLISH_TO_NPM` | No | Set to `"true"` to publish to GitHub Packages registry |
+| `SLACK_WEBHOOK` | No | Slack incoming webhook URL — enables Slack notifications when set |
+| `SEMANTIC_RELEASE_PACKAGE` | No | Package name shown in Slack notifications |
+
+## Publishing this package itself
+
 ```bash
-npm run semantic-release ==dry-run
+# Dry run (no publish)
+npx semantic-release --dry-run
+
+# Actual release — triggered automatically by CI on push to main
 ```
 
-## Configuration
-
-See each [plugin](#plugins) documentation for required installation and configuration steps.
+This package publishes itself via the `.github/workflows/release.yml` workflow using `GITHUB_TOKEN` (no extra secrets needed beyond an optional `SLACK_WEBHOOK`).
