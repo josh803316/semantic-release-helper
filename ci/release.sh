@@ -1,37 +1,11 @@
-#! /bin/bash
+#!/bin/bash
+set -e
 
-RE='[^0-9]*\([0-9]*\)[.]\([0-9]*\)[.]\([0-9]*\)\([0-9A-Za-z-]*\)'
-
-step="$1"
-if [ -z "$1" ]
-then
-  step=patch
+if [ -z "$1" ]; then
+  echo "Error: version argument is required"
+  exit 1
 fi
 
-base="$2"
-if [ -z "$2" ]
-then
-  base=$(git tag 2>/dev/null| tail -n 1)
-  if [ -z "$base" ]
-  then
-    base=0.0.0
-  fi
-fi
-
-MAJOR=`echo $base | sed -e "s#$RE#\1#"`
-MINOR=`echo $base | sed -e "s#$RE#\2#"`
-PATCH=`echo $base | sed -e "s#$RE#\3#"`
-
-case "$step" in
-  major)
-    let MAJOR+=1
-    ;;
-  minor)
-    let MINOR+=1
-    ;;
-  patch)
-    let PATCH+=1
-    ;;
-esac
-
-echo "Next version should be: $MAJOR.$MINOR.$PATCH"
+version="$1"
+echo "Next release version: $version"
+echo "$version" > /tmp/pre-release.version

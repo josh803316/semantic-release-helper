@@ -1,49 +1,12 @@
-// Slack notifications — to enable:
-//   1. Uncomment the Slack sections below
-//   2. Set SLACK_WEBHOOK env var to your Slack incoming webhook URL
-//   3. Set SEMANTIC_RELEASE_PACKAGE env var to your package name
-//
-// const slackifyMarkdown = require("slackify-markdown");
-// const { chunkifyString } = require("semantic-release-slack-bot/lib/chunkifier");
-// const slackWebhook = process.env.SLACK_WEBHOOK;
-//
-// const onSuccessFunction = (pluginConfig, context) => {
-//   const releaseNotes = slackifyMarkdown(context.nextRelease.notes);
-//   const text = `A new version of \`${process.env.SEMANTIC_RELEASE_PACKAGE}\` has been released to *Production!*`;
-//   const headerBlock = { type: "section", text: { type: "mrkdwn", text } };
-//   return {
-//     text,
-//     blocks: [
-//       headerBlock,
-//       ...chunkifyString(releaseNotes, 2900).map((chunk) => ({
-//         type: "section",
-//         text: { type: "mrkdwn", text: chunk },
-//       })),
-//     ],
-//   };
-// };
-//
-// const onFailFunction = (pluginConfig, context) => {
-//   const nextReleaseNotes = context.nextRelease?.notes || "No notes existed";
-//   const releaseNotes = slackifyMarkdown(nextReleaseNotes);
-//   const text = `A failure happened during the attempted release of \`${process.env.SEMANTIC_RELEASE_PACKAGE}\``;
-//   const headerBlock = { type: "section", text: { type: "mrkdwn", text } };
-//   return {
-//     text,
-//     blocks: [
-//       headerBlock,
-//       ...chunkifyString(releaseNotes, 2900).map((chunk) => ({
-//         type: "section",
-//         text: { type: "mrkdwn", text: chunk },
-//       })),
-//     ],
-//   };
-// };
-
 const willPublishPackages = process.env.PUBLISH_TO_NPM === "true";
 
+// Linear integration — set these env vars to override defaults.
+// Turns [PRO-123] references in commits into clickable Linear links in release notes.
+const linearIssuePrefix = process.env.LINEAR_ISSUE_PREFIX || "PRO";
+const linearWorkspace = process.env.LINEAR_WORKSPACE || "project-hygeia";
+
 const sortCommitGroup = (a, b) => {
-  const tags = [
+  const order = [
     ":rocket: FEATURES",
     ":bug: FIXES",
     ":racing_car: PERFORMANCE",
@@ -52,21 +15,28 @@ const sortCommitGroup = (a, b) => {
     ":construction: REFACTOR",
     ":nail_care: STYLING",
     ":thermometer: TEST",
+    ":closed_lock_with_key: SECURITY",
   ];
-  return tags.indexOf(a.title) - tags.indexOf(b.title);
+  return order.indexOf(a.title) - order.indexOf(b.title);
 };
 
 const pluginList = [
   [
     "@semantic-release/commit-analyzer",
     {
-      preset: "angular",
+      preset: "conventionalcommits",
       releaseRules: [
+        { breaking: true, release: "major" },
+        { revert: true, release: "patch" },
+        { type: "feat", release: "minor" },
+        { type: "fix", release: "patch" },
+        { type: "perf", release: "patch" },
         { type: "chore", release: "patch" },
         { type: "docs", release: "patch" },
         { type: "refactor", release: "patch" },
         { type: "style", release: "patch" },
         { type: "test", release: "patch" },
+        { type: "security", release: "patch" },
       ],
     },
   ],
@@ -84,7 +54,14 @@ const pluginList = [
           { type: "refactor", section: ":construction: REFACTOR", hidden: false },
           { type: "style", section: ":nail_care: STYLING", hidden: false },
           { type: "test", section: ":thermometer: TEST", hidden: false },
+          { type: "security", section: ":closed_lock_with_key: SECURITY", hidden: false },
         ],
+        commitUrlFormat: "{{host}}/{{owner}}/{{repository}}/commit/{{hash}}",
+        compareUrlFormat: "{{host}}/{{owner}}/{{repository}}/compare/{{previousTag}}...{{currentTag}}",
+        userUrlFormat: "{{host}}/{{user}}",
+        issuePrefixes: [`${linearIssuePrefix}-`],
+        issueUrlFormat: `https://linear.app/${linearWorkspace}/issue/{{id}}`,
+        dateFormat: "YYYY-MM-DD",
       },
       writerOpts: {
         groupBy: "type",
@@ -92,26 +69,13 @@ const pluginList = [
       },
     },
   ],
-  // Slack — uncomment block below and the Slack sections at the top of this file to enable
-  // [
-  //   "semantic-release-slack-bot",
-  //   {
-  //     notifyOnSuccess: false,
-  //     notifyOnFail: false,
-  //     markdownReleaseNotes: false,
-  //     slackWebhook,
-  //     branchesConfig: [
-  //       {
-  //         pattern: "main",
-  //         markdownReleaseNotes: false,
-  //         notifyOnSuccess: true,
-  //         onSuccessFunction,
-  //         notifyOnFail: true,
-  //         onFailFunction,
-  //       },
-  //     ],
-  //   },
-  // ],
+  [
+    "@semantic-release/exec",
+    {
+      // Write the resolved version to /tmp/pre-release.version for downstream build scripts.
+      prepareCmd: "./ci/release.sh ${nextRelease.version}", // eslint-disable-line no-template-curly-in-string
+    },
+  ],
   "@semantic-release/github",
 ];
 
@@ -125,6 +89,8 @@ if (willPublishPackages) {
 }
 
 module.exports = {
+  // Cut releases from main only.
+  // To enable pre-releases from a dev branch add: { name: "dev", prerelease: "dev" }
   branches: ["main"],
   plugins: pluginList,
 };
