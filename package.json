@@ -1,13 +1,13 @@
 {
   "name": "@josh803316/semantic-release-helper",
   "version": "0.0.0-semantically-released",
-  "description": "Shared emantic release configuration file",
+  "description": "Shared semantic-release configuration for @josh803316 projects",
   "main": "release.config.js",
   "files": [
     "release.config.js",
     "ci/"
   ],
-  "packageManager": "bun@1.3.9",
+  "packageManager": "bun@1.3.14",
   "scripts": {
     "semantic-release": "semantic-release"
   },
@@ -31,21 +31,12 @@
     "access": "public"
   },
   "dependencies": {
-    "semantic-release": "^25.0.9",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/exec": "^7.1.0",
     "@semantic-release/github": "^12.0.9",
     "@semantic-release/npm": "^13.1.5",
     "@semantic-release/release-notes-generator": "^14.1.1",
-    "conventional-changelog-conventionalcommits": "^10.3.0"
-  },
-  "devDependencies": {},
-  "prettier": {
-    "printWidth": 120,
-    "trailingComma": "es5"
-  },
-  "xo": {
-    "prettier": true,
-    "space": true
+    "conventional-changelog-conventionalcommits": "^10.3.0",
+    "semantic-release": "^25.0.9"
   }
 }
